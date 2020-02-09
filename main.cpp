@@ -2,6 +2,11 @@
 
 std::ofstream runtimeLogFile("runtime_log.log");
 
+using sec = std::chrono::seconds;
+using ms = std::chrono::milliseconds;
+using minutes = std::chrono::minutes;
+using SystemClock = std::chrono::system_clock;
+
 RenderState *renderState = new RenderState();
 Graphics *graphics = new Graphics();
 
@@ -11,6 +16,19 @@ const unsigned int FRAME_WIDTH = 640;
 const unsigned int FRAME_HEIGHT = 480;
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
+
+std::time_t getCurrentTime()
+{
+    SystemClock::time_point currentTimePoint = SystemClock::now();
+    std::time_t currentTime_t = SystemClock::to_time_t(currentTimePoint);
+
+    return currentTime_t;
+}
+
+std::time_t getElapsedTime(std::time_t start, std::time_t now)
+{
+    return now - start;
+}
 
 RECT getClientRect(HWND hWnd)
 {
@@ -46,17 +64,23 @@ void writeDistanceDataToArray(const rs2::depth_frame &depthFrame)
 int findNearestPointShift()
 {
     int nearestPointX = 0;
-    float nearestPointValue = depthValues[nearestPointX];
+    float nearestPointValue = 1.0f;
 
     for (unsigned int y = 0; y < FRAME_HEIGHT; y++)
     {
         for (unsigned int x = 1; x < FRAME_WIDTH; x++)
         {
-            nearestPointX = (depthValues[x + y * FRAME_WIDTH] < nearestPointValue) ? x : nearestPointX;
+            float currentCheckedPoint = depthValues[x + y * FRAME_WIDTH];
+
+            if (currentCheckedPoint < nearestPointValue && currentCheckedPoint != 0)
+            {
+                nearestPointValue = currentCheckedPoint;
+                nearestPointX = x;
+            }
         }
-        
     }
 
+    runtimeLogFile << nearestPointValue << "\n";
     return nearestPointX - FRAME_WIDTH / 2;
 }
 
@@ -81,10 +105,16 @@ void copyDistanceDataToImage(unsigned int x, unsigned int y, unsigned int width,
     }
 }
 
-LRESULT CALLBACK windowCallback(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
+LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) try
 {
+    std::chrono::high_resolution_clock clock;
+
+    SystemClock::time_point startTimePoint = SystemClock::now();
+    std::time_t startTime_t = SystemClock::to_time_t(startTimePoint);
+    
+
     WNDCLASS windowClass{};
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
     windowClass.lpszClassName = L"RenderWindow";
@@ -103,8 +133,14 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     rs2::pipeline pipe;
     
     rs2::device connectedDevice = getConnectedRealSenseDevice(context);
-    runtimeLogFile << "Device connected.\n";
+
+    std::time_t currentTime_t = getCurrentTime();
+
+    std::time_t timeElapsed = getElapsedTime(startTime_t, currentTime_t);
+    
+    runtimeLogFile << "[" << timeElapsed << "] : " << "Device connected.\n";
     pipe.start();
+    runtimeLogFile << "[" << getElapsedTime(startTime_t, getCurrentTime()) << "] : " << "Pipeline opened.\n";
 
     rs2::frameset frames = pipe.wait_for_frames();
     rs2::depth_frame depthFrame = frames.get_depth_frame();
@@ -128,17 +164,21 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
             DispatchMessage(&message);
         }
 
-        frames = pipe.wait_for_frames(200);
+        frames = pipe.wait_for_frames(100);
         depthFrame = frames.get_depth_frame();
 
         writeDistanceDataToArray(depthFrame);
         copyDistanceDataToImage(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
         int nearestPoint = findNearestPointShift();
 
-        runtimeLogFile << nearestPoint << "\n";
+        runtimeLogFile << nearestPoint << "\n\n";
 
         StretchDIBits(hdc, 0, 0, windowWidth, windowHeight, 0, 0, FRAME_WIDTH, FRAME_HEIGHT, renderState->memory, &renderState->bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
     }
+
+    pipe.stop();
+    
+    runtimeLogFile << "[" << getElapsedTime(startTime_t, getCurrentTime()) << "] : " << "Pipeline closed.\n";
 
     delete graphics;
     delete renderState;
@@ -149,7 +189,7 @@ catch (const std::runtime_error &err)
     runtimeLogFile << err.what() << "\n";
 }
 
-LRESULT CALLBACK windowCallback(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
+LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
     LRESULT result = NULL;
 
@@ -181,7 +221,7 @@ LRESULT CALLBACK windowCallback(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPar
 
         default:
         {
-            result = DefWindowProc(hwnd, uMsg, wParam, lParam);
+            result = DefWindowProc(hWnd, uMsg, wParam, lParam);
         }
     }
 
