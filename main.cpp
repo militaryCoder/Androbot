@@ -2,11 +2,6 @@
 
 std::ofstream runtimeLogFile("runtime_log.log");
 
-using sec = std::chrono::seconds;
-using ms = std::chrono::milliseconds;
-using minutes = std::chrono::minutes;
-using SystemClock = std::chrono::system_clock;
-
 RenderState *renderState = new RenderState();
 Graphics *graphics = new Graphics();
 
@@ -16,19 +11,6 @@ const unsigned int FRAME_WIDTH = 640;
 const unsigned int FRAME_HEIGHT = 480;
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
-
-std::time_t getCurrentTime()
-{
-    SystemClock::time_point currentTimePoint = SystemClock::now();
-    std::time_t currentTime_t = SystemClock::to_time_t(currentTimePoint);
-
-    return currentTime_t;
-}
-
-std::time_t getElapsedTime(std::time_t start, std::time_t now)
-{
-    return now - start;
-}
 
 RECT getClientRect(HWND hWnd)
 {
@@ -109,11 +91,8 @@ LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wPar
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) try
 {
-    std::chrono::high_resolution_clock clock;
-
-    SystemClock::time_point startTimePoint = SystemClock::now();
-    std::time_t startTime_t = SystemClock::to_time_t(startTimePoint);
-    
+    Clock clock;
+    clock.start();
 
     WNDCLASS windowClass{};
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -134,13 +113,12 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     
     rs2::device connectedDevice = getConnectedRealSenseDevice(context);
 
-    std::time_t currentTime_t = getCurrentTime();
 
-    std::time_t timeElapsed = getElapsedTime(startTime_t, currentTime_t);
+    std::time_t timeElapsed = clock.getElapsedTime();
     
     runtimeLogFile << "[" << timeElapsed << "] : " << "Device connected.\n";
     pipe.start();
-    runtimeLogFile << "[" << getElapsedTime(startTime_t, getCurrentTime()) << "] : " << "Pipeline opened.\n";
+    runtimeLogFile << "[" << clock.getElapsedTime() << "] : " << "Pipeline opened.\n";
 
     rs2::frameset frames = pipe.wait_for_frames();
     rs2::depth_frame depthFrame = frames.get_depth_frame();
@@ -178,7 +156,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
     pipe.stop();
     
-    runtimeLogFile << "[" << getElapsedTime(startTime_t, getCurrentTime()) << "] : " << "Pipeline closed.\n";
+    runtimeLogFile << "[" << clock.getElapsedTime() << "] : " << "Pipeline closed.\n";
 
     delete graphics;
     delete renderState;
