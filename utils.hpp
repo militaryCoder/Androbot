@@ -1,5 +1,9 @@
 #pragma once
 
+#include <Windows.h>
+
+typedef unsigned int uint;
+
 namespace utils
 {
 	template<typename T>
@@ -12,6 +16,8 @@ namespace utils
 
 		return value;
 	}
+	
+	RECT getClientRect(HWND hWnd);
 
 	const float infinite_small = 0.0001f;
 }
