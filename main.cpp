@@ -12,14 +12,6 @@ const uint FRAME_HEIGHT = 480;
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
 
-RECT getClientRect(HWND hWnd)
-{
-    RECT rect;
-    GetClientRect(hWnd, &rect);
-
-    return rect;
-}
-
 rs2::device getConnectedRealSenseDevice(rs2::context &ctx)
 {
     rs2::device_list devList = ctx.query_devices();
@@ -126,7 +118,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     rs2::frameset frames = pipe.wait_for_frames();
     rs2::depth_frame depthFrame = frames.get_depth_frame();
 
-    RECT windowRect = getClientRect(hWnd);
+    RECT windowRect = utils::getClientRect(hWnd);
 
     uint windowWidth = windowRect.right - windowRect.left;
     uint windowHeight = windowRect.bottom - windowRect.top;
