@@ -43,9 +43,10 @@ void writeDistanceDataToArray(const rs2::depth_frame &depthFrame)
     }
 }
 
-int findNearestPointShift()
+template<typename T>
+std::pair<T, T> getNearestPointCoordinates()
 {
-    int nearestPointX = 0;
+    std::pair<T, T> coords;
     float nearestPointValue = 1.0f;
 
     for (unsigned int y = 0; y < FRAME_HEIGHT; y++)
@@ -57,13 +58,13 @@ int findNearestPointShift()
             if (currentCheckedPoint < nearestPointValue && currentCheckedPoint != 0)
             {
                 nearestPointValue = currentCheckedPoint;
-                nearestPointX = x;
+                coords = std::pair<int, int>{ x, y };
             }
         }
     }
 
     runtimeLogFile << nearestPointValue << "\n";
-    return nearestPointX - FRAME_WIDTH / 2;
+    return coords;
 }
 
 void copyDistanceDataToImage(unsigned int x, unsigned int y, unsigned int width, unsigned int height)
@@ -147,9 +148,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
         writeDistanceDataToArray(depthFrame);
         copyDistanceDataToImage(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-        int nearestPoint = findNearestPointShift();
+        std::pair<int, int> nearestCoords = getNearestPointCoordinates();
 
-        runtimeLogFile << nearestPoint << "\n\n";
+        runtimeLogFile << "x: " << nearestCoords.first << "y: " << nearestCoords.second << "\n\n";
 
         StretchDIBits(hdc, 0, 0, windowWidth, windowHeight, 0, 0, FRAME_WIDTH, FRAME_HEIGHT, renderState->memory, &renderState->bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
     }
