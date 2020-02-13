@@ -7,8 +7,8 @@ Graphics *graphics = new Graphics();
 
 bool running = true;
 
-const unsigned int FRAME_WIDTH = 640;
-const unsigned int FRAME_HEIGHT = 480;
+const uint FRAME_WIDTH = 640;
+const uint FRAME_HEIGHT = 480;
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
 
@@ -32,28 +32,29 @@ rs2::device getConnectedRealSenseDevice(rs2::context &ctx)
     return devList.front();
 }
 
-void writeDistanceDataToArray(const rs2::depth_frame &depthFrame)
+template<typename T>
+void writeDistanceDataToArray(const rs2::depth_frame &depthFrame, T array)
 {
-    for (unsigned int y = 0; y < FRAME_HEIGHT; y++)
+    for (uint y = 0; y < FRAME_HEIGHT; y++)
     {
-        for (unsigned int x = 0; x < FRAME_WIDTH; x++)
+        for (uint x = 0; x < FRAME_WIDTH; x++)
         {
-            depthValues[x + y * FRAME_WIDTH] = depthFrame.get_distance(x, y);
+            array[x + y * FRAME_WIDTH] = depthFrame.get_distance(x, y);
         }
     }
 }
 
-template<typename T>
-std::pair<T, T> getNearestPointCoordinates()
+template<typename T, typename T1, typename T2>
+std::pair<T1, T2> getNearestPointCoordinates(T *source)
 {
-    std::pair<T, T> coords;
+    std::pair<T1, T2> coords;
     float nearestPointValue = 1.0f;
 
-    for (unsigned int y = 0; y < FRAME_HEIGHT; y++)
+    for (uint y = 0; y < FRAME_HEIGHT; y++)
     {
-        for (unsigned int x = 1; x < FRAME_WIDTH; x++)
+        for (uint x = 1; x < FRAME_WIDTH; x++)
         {
-            float currentCheckedPoint = depthValues[x + y * FRAME_WIDTH];
+            float currentCheckedPoint = source[x + y * FRAME_WIDTH];
 
             if (currentCheckedPoint < nearestPointValue && currentCheckedPoint != 0)
             {
@@ -67,21 +68,22 @@ std::pair<T, T> getNearestPointCoordinates()
     return coords;
 }
 
-void copyDistanceDataToImage(unsigned int x, unsigned int y, unsigned int width, unsigned int height)
+template<typename T>
+void copyDistanceDataToImage(uint x, uint y, uint width, uint height, T *source)
 {
-    x = utils::clamp((unsigned int)0, x, renderState->width);
-    y = utils::clamp((unsigned int)0, y, renderState->height);
+    x = utils::clamp((uint)0, x, renderState->width);
+    y = utils::clamp((uint)0, y, renderState->height);
 
-    unsigned int right = utils::clamp(x + width, (unsigned int)0, renderState->width);
-    unsigned int bottom = utils::clamp(y + height, (unsigned int)0, renderState->height);
+    uint right = utils::clamp(x + width, (uint)0, renderState->width);
+    uint bottom = utils::clamp(y + height, (uint)0, renderState->height);
 
-    for (unsigned int y_c = y; y_c < bottom; y_c++)
+    for (uint y_c = y; y_c < bottom; y_c++)
     {
-        unsigned int* currentPixel = (unsigned int*)renderState->memory + x + y_c * width;
+        uint* currentPixel = (uint*)renderState->memory + x + y_c * width;
 
-        for (unsigned int x_c = x; x_c < right; x_c++)
+        for (uint x_c = x; x_c < right; x_c++)
         {
-            float distanceValue = depthValues[x_c + y_c * FRAME_WIDTH];
+            float distanceValue = source[x_c + y_c * FRAME_WIDTH];
 
             *currentPixel++ = distanceValue * 200;
         }
@@ -126,8 +128,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
     RECT windowRect = getClientRect(hWnd);
 
-    unsigned int windowWidth = windowRect.right - windowRect.left;
-    unsigned int windowHeight = windowRect.bottom - windowRect.top;
+    uint windowWidth = windowRect.right - windowRect.left;
+    uint windowHeight = windowRect.bottom - windowRect.top;
 
     renderState->width = windowWidth;
     renderState->width = windowHeight;
@@ -146,9 +148,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         frames = pipe.wait_for_frames(100);
         depthFrame = frames.get_depth_frame();
 
-        writeDistanceDataToArray(depthFrame);
-        copyDistanceDataToImage(0, 0, FRAME_WIDTH, FRAME_HEIGHT);
-        std::pair<int, int> nearestCoords = getNearestPointCoordinates();
+        writeDistanceDataToArray(depthFrame, depthValues);
+        copyDistanceDataToImage(0, 0, FRAME_WIDTH, FRAME_HEIGHT, depthValues);
+        std::pair<int, int> nearestCoords = getNearestPointCoordinates<float, int, int>(depthValues);
 
         runtimeLogFile << "x: " << nearestCoords.first << "y: " << nearestCoords.second << "\n\n";
 
@@ -182,7 +184,7 @@ LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wPar
 
         case WM_SIZE:
         {
-            unsigned int bufferSize = renderState->width * renderState->height * sizeof(unsigned int);
+            uint bufferSize = renderState->width * renderState->height * sizeof(uint);
             if (renderState->memory)
             {
                 VirtualFree(renderState->memory, 0, MEM_RELEASE);
