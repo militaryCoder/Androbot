@@ -5,82 +5,23 @@ std::ofstream runtimeLogFile("runtime_log.log");
 RenderState *renderState = new RenderState();
 Graphics *graphics = new Graphics();
 
-bool running = true;
+static bool running = true;
 
 const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
 
-rs2::device getConnectedRealSenseDevice(rs2::context &ctx)
-{
-    rs2::device_list devList = ctx.query_devices();
-
-    if (0 == devList.size())
-    {
-        throw std::runtime_error("No devices connected.");
-    }
-
-    return devList.front();
-}
+rs2::device getConnectedRealSenseDevice(rs2::context& ctx);
 
 template<typename T>
-void writeDistanceDataToArray(const rs2::depth_frame &depthFrame, T array)
-{
-    for (uint y = 0; y < FRAME_HEIGHT; y++)
-    {
-        for (uint x = 0; x < FRAME_WIDTH; x++)
-        {
-            array[x + y * FRAME_WIDTH] = depthFrame.get_distance(x, y);
-        }
-    }
-}
+void writeDistanceDataToArray(const rs2::depth_frame& depthFrame, T array);
 
 template<typename T, typename T1, typename T2>
-std::pair<T1, T2> getNearestPointCoordinates(T *source)
-{
-    std::pair<T1, T2> coords;
-    float nearestPointValue = 1.0f;
-
-    for (uint y = 0; y < FRAME_HEIGHT; y++)
-    {
-        for (uint x = 1; x < FRAME_WIDTH; x++)
-        {
-            float currentCheckedPoint = source[x + y * FRAME_WIDTH];
-
-            if (currentCheckedPoint < nearestPointValue && currentCheckedPoint != 0)
-            {
-                nearestPointValue = currentCheckedPoint;
-                coords = std::pair<int, int>{ x, y };
-            }
-        }
-    }
-
-    runtimeLogFile << nearestPointValue << "\n";
-    return coords;
-}
+std::pair<T1, T2> getNearestPointCoordinates(T* source);
 
 template<typename T>
-void copyDistanceDataToImage(uint x, uint y, uint width, uint height, T *source)
-{
-    x = utils::clamp((uint)0, x, renderState->width);
-    y = utils::clamp((uint)0, y, renderState->height);
-
-    uint right = utils::clamp(x + width, (uint)0, renderState->width);
-    uint bottom = utils::clamp(y + height, (uint)0, renderState->height);
-
-    for (uint y_c = y; y_c < bottom; y_c++)
-    {
-        uint* currentPixel = (uint*)renderState->memory + x + y_c * width;
-
-        for (uint x_c = x; x_c < right; x_c++)
-        {
-            float distanceValue = source[x_c + y_c * FRAME_WIDTH];
-
-            *currentPixel++ = distanceValue * 200;
-        }
-    }
-}
+void copyDistanceDataToImage(uint x, uint y, uint width, uint height, T* source);
 
 LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
@@ -115,8 +56,9 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     pipe.start();
     runtimeLogFile << "[" << clock.getElapsedTime() << "] : " << "Pipeline opened.\n";
 
+    // Initial frameset as warmup
     rs2::frameset frames = pipe.wait_for_frames();
-    rs2::depth_frame depthFrame = frames.get_depth_frame();
+    rs2::depth_frame depthFrame{ 0 };
 
     RECT windowRect = utils::getClientRect(hWnd);
 
@@ -199,4 +141,73 @@ LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wPar
     }
 
     return result;
+}
+
+rs2::device getConnectedRealSenseDevice(rs2::context& ctx)
+{
+    rs2::device_list devList = ctx.query_devices();
+
+    if (0 == devList.size())
+    {
+        throw std::runtime_error("No devices connected.");
+    }
+
+    return devList.front();
+}
+
+template<typename T>
+void writeDistanceDataToArray(const rs2::depth_frame& depthFrame, T array)
+{
+    for (uint y = 0; y < FRAME_HEIGHT; y++)
+    {
+        for (uint x = 0; x < FRAME_WIDTH; x++)
+        {
+            array[x + y * FRAME_WIDTH] = depthFrame.get_distance(x, y);
+        }
+    }
+}
+
+template<typename T, typename T1, typename T2>
+std::pair<T1, T2> getNearestPointCoordinates(T* source)
+{
+    std::pair<T1, T2> coords;
+    float nearestPointValue = 1.0f;
+
+    for (uint y = 0; y < FRAME_HEIGHT; y++)
+    {
+        for (uint x = 1; x < FRAME_WIDTH; x++)
+        {
+            float currentCheckedPoint = source[x + y * FRAME_WIDTH];
+
+            if (currentCheckedPoint < nearestPointValue && currentCheckedPoint != 0)
+            {
+                nearestPointValue = currentCheckedPoint;
+                coords = std::pair<int, int>{ x, y };
+            }
+        }
+    }
+
+    return coords;
+}
+
+template<typename T>
+void copyDistanceDataToImage(uint x, uint y, uint width, uint height, T* source)
+{
+    x = utils::clamp((uint)0, x, renderState->width);
+    y = utils::clamp((uint)0, y, renderState->height);
+
+    uint right = utils::clamp(x + width, (uint)0, renderState->width);
+    uint bottom = utils::clamp(y + height, (uint)0, renderState->height);
+
+    for (uint y_c = y; y_c < bottom; y_c++)
+    {
+        uint* currentPixel = (uint*)renderState->memory + x + y_c * width;
+
+        for (uint x_c = x; x_c < right; x_c++)
+        {
+            float distanceValue = source[x_c + y_c * FRAME_WIDTH];
+
+            *currentPixel++ = distanceValue * 200;
+        }
+    }
 }
