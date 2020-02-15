@@ -2,8 +2,6 @@
 
 #include <Windows.h>
 #include <fstream>
-#include <ctime>
-#include <chrono>
 
 #include "Graphics.hpp"
 #include "RenderState.hpp"
