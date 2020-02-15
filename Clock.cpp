@@ -2,20 +2,20 @@
 
 void Clock::start()
 {
-	m_startTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	m_startTime = time(NULL);
 }
 
 void Clock::stop()
 {
-	m_stopTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	m_stopTime = time(NULL);
 }
 
 std::time_t Clock::getElapsedTime() const
 {
-	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) - m_startTime;
+	return time(NULL) - m_startTime;
 }
 
 std::time_t Clock::getCurrentTime() const
 {
-	return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	return time(NULL);
 }
