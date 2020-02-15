@@ -8,5 +8,6 @@
 #include "utils.hpp"
 #include "color.hpp"
 #include "Clock.hpp"
+#include "SerialPort.hpp"
 
 #include <librealsense2/rs.hpp>

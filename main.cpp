@@ -10,6 +10,8 @@ static bool running = true;
 const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
+const char *PORT_NAME = "\\\\.\\COM20";
+
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
 
 rs2::device getConnectedRealSenseDevice(rs2::context& ctx);
@@ -46,9 +48,10 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 
     rs2::context context;
     rs2::pipeline pipe;
+    SerialPort *port;
     
     rs2::device connectedDevice = getConnectedRealSenseDevice(context);
-
+    port = new SerialPort(PORT_NAME);
 
     std::time_t timeElapsed = clock.getElapsedTime();
     
@@ -87,6 +90,15 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         std::pair<int, int> nearestCoords = getNearestPointCoordinates<float, int, int>(depthValues);
 
         runtimeLogFile << "x: " << nearestCoords.first << "y: " << nearestCoords.second << "\n\n";
+
+        char *bufferX;
+        char *bufferY;
+
+        itoa(nearestCoords.first, bufferX, 10);
+        itoa(nearestCoords.second, bufferY, 10);
+
+        port->writeSerialPort(bufferX, sizeof(bufferX));
+        port->writeSerialPort(bufferY, sizeof(bufferY));
 
         StretchDIBits(hdc, 0, 0, windowWidth, windowHeight, 0, 0, FRAME_WIDTH, FRAME_HEIGHT, renderState->memory, &renderState->bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
     }
