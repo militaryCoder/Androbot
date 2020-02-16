@@ -10,7 +10,7 @@ static bool running = true;
 const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
-const char *PORT_NAME = "\\\\.\\COM20";
+std::string PORT_NAME = "\\\\.\\COM20";
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
 
@@ -45,13 +45,17 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     HDC hdc = GetDC(hWnd);
 
 
-
     rs2::context context;
     rs2::pipeline pipe;
     SerialPort *port;
     
     rs2::device connectedDevice = getConnectedRealSenseDevice(context);
-    port = new SerialPort(PORT_NAME);
+    port = new SerialPort(PORT_NAME.c_str());
+
+    if (!port->isConnected())
+    {
+        throw std::runtime_error("Did not found any online ports with name" + PORT_NAME);
+    }
 
     std::time_t timeElapsed = clock.getElapsedTime();
     

@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 #include <fstream>
+#include <string>
+#include <cstring>
 
 #include "Graphics.hpp"
 #include "RenderState.hpp"
