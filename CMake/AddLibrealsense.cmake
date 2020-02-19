@@ -8,7 +8,7 @@ if(NOT EXISTS $ENV{LIBREALSENSE2_SOURCE_DIR})
         PREFIX librealsense2
         GIT_REPOSITORY https://github.com/IntelRealSense/librealsense.git
         SOURCE_DIR $ENV{LIBREALSENSE2_SOURCE_DIR}
-        BINARY_DIR $ENV{LIBREALSENSE2_SOURCE_DIR}/bin
+        BINARY_DIR ${CMAKE_BINARY_DIR}/librealsense
     )
 endif()
 
