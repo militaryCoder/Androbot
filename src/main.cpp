@@ -14,7 +14,7 @@ std::string PORT_NAME = "\\\\.\\COM20";
 
 float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
 
-rs2::device getConnectedRealSenseDevice(rs2::context& ctx);
+rs2::device getConnectedRealSenseDevice(rs2::context &ctx);
 
 template<typename T>
 void writeDistanceDataToArray(const rs2::depth_frame& depthFrame, T array);
