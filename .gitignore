@@ -4,3 +4,4 @@ Debug/*
 *.vcxproj.*
 .vs
 build
+.vscode
