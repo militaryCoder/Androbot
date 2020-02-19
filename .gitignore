@@ -3,3 +3,4 @@ Debug/*
 *.log
 *.vcxproj.*
 .vs
+build
