@@ -4,4 +4,5 @@ project(RealSenseDepthRenderer)
 
 include(CMake/AddLibrealsense.cmake)
 
-add_executable(${CMAKE_PROJECT_NAME} main.cpp)
+add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
+target_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
