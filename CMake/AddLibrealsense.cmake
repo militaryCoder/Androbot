@@ -1,11 +1,12 @@
 include(ExternalProject)
 
 set($ENV{LIBREALSENSE2_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/3rd-party/librealsense2)
-set(LIBREALSENSE_BUILD_COMMAND "mkdir "${CMAKE_BINARY_DIR}"/librealsense; cd librealsense; cmake "$ENV{LIBREALSENSE2_SOURCE_DIR}; "cmake --build .")
+set(LIBREALSENSE_BUILD_COMMAND "mkdir " ${CMAKE_BINARY_DIR}"/librealsense; cd librealsense; cmake "$ENV{LIBREALSENSE2_SOURCE_DIR}; "cmake --build .")
 
 if(NOT EXISTS $ENV{LIBREALSENSE2_SOURCE_DIR})
     if(NOT EXISTS ${CMAKE_BINARY_DIR}/librealsense)
         set(LIBREALSENSE_SHOULD_BUILD TRUE)
+    endif()
 
     ExternalProject_Add(librealsense2
         PREFIX librealsense2
