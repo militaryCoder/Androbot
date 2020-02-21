@@ -7,23 +7,23 @@ Graphics *graphics = new Graphics();
 
 static bool running = true;
 
-const uint FRAME_WIDTH = 640;
-const uint FRAME_HEIGHT = 480;
+const uint FRAME_WIDTH = 640; // OK
+const uint FRAME_HEIGHT = 480; // OK
 
-std::string PORT_NAME = "\\\\.\\COM20";
+std::string PORT_NAME = "\\\\.\\COM20"; // OK
 
-float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
+float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT]; // OK
 
-rs2::device getConnectedRealSenseDevice(rs2::context &ctx);
+rs2::device getConnectedRealSenseDevice(rs2::context &ctx); // OK
 
 template<typename T>
-void writeDistanceDataToArray(const rs2::depth_frame& depthFrame, T array);
+void writeDistanceDataToArray(const rs2::depth_frame& depthFrame, T array); // OK
 
 template<typename T, typename T1, typename T2>
-std::pair<T1, T2> getNearestPointCoordinates(T* source);
+std::pair<T1, T2> getNearestPointCoordinates(T* source); // OK
 
 template<typename T>
-void copyDistanceDataToImage(uint x, uint y, uint width, uint height, T* source);
+void copyDistanceDataToImage(uint x, uint y, uint width, uint height, T* source); // OK
 
 LRESULT CALLBACK windowCallback(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
