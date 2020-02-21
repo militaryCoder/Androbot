@@ -4,6 +4,7 @@ const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
 std::string PORT_NAME = "\\\\.\\COM20";
+std::string WINDOW_NAME = "Render viewport";
 
 float *depthValues;
 
@@ -21,6 +22,7 @@ ValueType getShortestDistance(ValueType *source);
 template<typename ValueType>
 cimg_library::CImg<> copyDistanceDataToImage(ValueType *src);
 
+
 int main(int argc, char **argv)
 {
     depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
@@ -34,6 +36,29 @@ int main(int argc, char **argv)
 
     rs2::frameset frames = pipe.wait_for_frames();
     rs2::depth_frame depthFrame{ 0 };
+
+    cimg_library::CImg renderedViewport(FRAME_WIDTH, FRAME_HEIGHT);
+
+    cimg_library::CImgDisplay viewport(renderedViewport, WINDOW_NAME.c_str());
+
+    while (!viewport.is_closed())
+    {
+        writeDistanceDataToArray(depthFrame, depthValues);
+        renderedViewport = copyDistanceDataToImage(depthValues);
+
+
+
+        std::pair<int, int> nearestPointCoords = getNearestPointCoordinates<int, float>(depthValues);
+
+        std::string xCoordSent = std::to_string(nearestPointCoords.first);
+        std::string yCoordSent = std::to_string(nearestPointCoords.second);
+
+        // TODO: Make SerialPort access independent fromm OS
+    }
+
+    pipe.stop();
+
+    delete[] depthValues;
 
     return 0;
 }
