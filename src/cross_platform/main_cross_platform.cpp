@@ -59,7 +59,7 @@ int main(int argc, char **argv)
         std::string xCoordSent = std::to_string(nearestPointCoords.first);
         std::string yCoordSent = std::to_string(nearestPointCoords.second);
 
-        // TODO: Make SerialPort access independent fromm OS
+        // TODO: Make SerialPort access independent from OS
     }
 
     pipe.stop();
