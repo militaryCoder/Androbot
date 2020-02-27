@@ -12,5 +12,6 @@
 
 #include "Clock.hpp"
 #include "color.hpp"
+#include "utils.hpp"
 
 #include <librealsense2/rs.hpp>

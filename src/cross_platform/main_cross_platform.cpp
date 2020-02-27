@@ -1,5 +1,7 @@
 #include "../../include/cross_platform/pch.hpp"
 
+std::ofstream logFile("runtime.log");
+
 const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
@@ -29,8 +31,12 @@ int main(int argc, char **argv)
 
     rs2::context context;
     rs2::pipeline pipe;
+
+    logFile << "Pipe connected" << std::endl;
     
     rs2::device connectedDevice = getConnectedRealSenseDevice(context);
+
+    logFile << "Device connected" << std::endl;
 
     pipe.start();
 
@@ -125,4 +131,16 @@ cimg_library::CImg<ValueType> copyDistanceDataToImage(ValueType *src)
     cimg_library::CImg<ValueType> image(src, FRAME_WIDTH, FRAME_HEIGHT, 1);
 
     return image;
+}
+
+rs2::device getConnectedRealSenseDevice(rs2::context &ctx)
+{
+    rs2::device_list devList = ctx.query_devices();
+
+    if (0 == devList.size())
+    {
+        throw std::runtime_error("No devices connected.");
+    }
+
+    return devList.front();
 }
