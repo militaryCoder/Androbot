@@ -5,3 +5,5 @@ Debug/*
 .vs
 build
 .vscode
+3rd-party
+external_libs
