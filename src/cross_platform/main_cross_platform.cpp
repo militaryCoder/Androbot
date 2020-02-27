@@ -20,7 +20,7 @@ template<typename ValueType>
 ValueType getShortestDistance(ValueType *source);
 
 template<typename ValueType>
-cimg_library::CImg<> copyDistanceDataToImage(ValueType *src);
+cimg_library::CImg<ValueType> copyDistanceDataToImage(ValueType *src);
 
 
 int main(int argc, char **argv)
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     rs2::frameset frames = pipe.wait_for_frames();
     rs2::depth_frame depthFrame{ 0 };
 
-    cimg_library::CImg renderedViewport(FRAME_WIDTH, FRAME_HEIGHT);
+    cimg_library::CImg<float> renderedViewport(FRAME_WIDTH, FRAME_HEIGHT);
 
     cimg_library::CImgDisplay viewport(renderedViewport, WINDOW_NAME.c_str());
 
@@ -111,7 +111,7 @@ ValueType getShortestDistance(ValueType *source)
 
             if (currentCheckedPoint < shortestDist && currentCheckedPoint != 0)
             {
-                nearestPointValue = currentCheckedPoint;
+                shortestDist = currentCheckedPoint;
             }
         }
     }
@@ -120,19 +120,9 @@ ValueType getShortestDistance(ValueType *source)
 }
 
 template<typename ValueType>
-cimg_library::CImg<> copeDistanceDataToImage(ValueType *src)
+cimg_library::CImg<ValueType> copyDistanceDataToImage(ValueType *src)
 {
-    std::initializer_list<ValueType> pixelsValues{};
-
-    for (uint y = 0; y < FRAME_HEIGHT; y++)
-    {
-        for (uint x = 0; x < FRAME_HEIGHT; x++)
-        {
-            pixelsValues[x + y * FRAME_WIDTH] = src[x + y * FRAME_WIDTH];
-        }
-    }
-
-    cimg_library::CImg image(pixelsValues);
+    cimg_library::CImg<ValueType> image(src, FRAME_WIDTH, FRAME_HEIGHT, 1);
 
     return image;
 }

@@ -8,7 +8,7 @@
 #include <string>
 #include <cstring>
 
-#include "CImg.h"
+#include "CImg/CImg.h"
 
 #include "Clock.hpp"
 #include "color.hpp"
