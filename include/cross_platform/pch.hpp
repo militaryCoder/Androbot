@@ -3,9 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
-#include <exception>
 #include <fstream>
-#include <string>
 #include <cstring>
 
 #include "CImg/CImg.h"

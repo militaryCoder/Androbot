@@ -1,7 +1,5 @@
 #include "../../include/cross_platform/pch.hpp"
 
-std::ofstream logFile("runtime.log");
-
 const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
@@ -31,12 +29,8 @@ int main(int argc, char **argv)
 
     rs2::context context;
     rs2::pipeline pipe;
-
-    logFile << "Pipe connected" << std::endl;
     
     rs2::device connectedDevice = getConnectedRealSenseDevice(context);
-
-    logFile << "Device connected" << std::endl;
 
     pipe.start();
 
