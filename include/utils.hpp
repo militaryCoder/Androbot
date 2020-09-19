@@ -1,11 +1,9 @@
 #pragma once
 
-typedef unsigned int uint;
-
 namespace utils
 {
-	template<typename T>
-	inline T clamp(T value, T min, T max)
+	template<typename ValType, typename MinType, typename MaxType>
+	inline ValType clamp(ValType value, MinType min, MaxType max)
 	{
 		if (value < min)
 			return min;
@@ -14,6 +12,4 @@ namespace utils
 
 		return value;
 	}
-
-	const float infinite_small = 0.0001f;
 }
