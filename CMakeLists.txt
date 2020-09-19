@@ -1,30 +1,27 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-project(RealSenseDepthRenderer)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(TARGET_NAME ${CMAKE_PROJECT_NAME})
+include(ExternalProject)
 
-add_executable(${TARGET_NAME}
-    src/cross_platform/main_cross_platform.cpp
+ExternalProject_Add(
+    librealsense2
+    PREFIX ${CMAKE_SOURCE_DIR}/3rd-party/librealsense
+
+    GIT_REPOSITORY https://github.com/IntelRealSense/librealsense
+    GIT_TAG v2.38.1
+    GIT_SHALLOW ON
+    GIT_PROGRESS ON
+
+    CMAKE_ARGS
+        -D BUILD_SHARED_LIBS=OFF
+        -D BUILD_EXAMPLES=OFF
+        -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    
+    INSTALL_COMMAND ""
 )
 
-if(WIN32)
-    include(CMake/ConfigWin32.cmake)
-elseif(UNIX AND NOT APPLE)
-    include(CMake/ConfigUnix.cmake)
-else()
-    include(CMake/Config_macOS.cmake)
-endif()
+ExternalProject_Get_Property(librealsense2 BINARY_DIR)
+ExternalProject_Get_Property(librealsense2 SOURCE_DIR)
 
-target_include_directories(${TARGET_NAME}
-    PUBLIC
-    ${INCLUDE_DIRS}
-
-    PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-)
-
-target_link_libraries(${TARGET_NAME}
-    PUBLIC
-    ${LIBS}
-)
+add_subdirectory(src)
