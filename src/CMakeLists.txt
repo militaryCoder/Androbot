@@ -21,11 +21,16 @@ endif()
 
 target_link_libraries(Androbot
     PRIVATE
-        ${BINARY_DIR}/${CMAKE_BUILD_TYPE}/$<${IS_UNIX_OS}:lib>realsense2$<$<AND:$<NOT:${IS_UNIX_OS}>,$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:$<BOOL:WIN32>,lib,a>
-        ${BINARY_DIR}/libusb_install/lib/$<${IS_UNIX_OS}:lib>usb.$<IF:$<BOOL:WIN32>,lib,a>
-        ${BINARY_DIR}/third-party/realsense-file/${CMAKE_BUILD_TYPE}/$<${IS_UNIX_OS}:lib>realsense-file$<$<AND:$<NOT:${IS_UNIX_OS}>,$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:$<BOOL:WIN32>,lib,a>
+        ${BINARY_DIR}/${CMAKE_BUILD_TYPE}/$<$<NOT:${WIN32}>:lib>realsense2$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:${WIN32},lib,a>
+        ${BINARY_DIR}/libusb_install/lib/$<$<NOT:${WIN32}>:lib>usb.$<IF:$<BOOL:WIN32>,lib,a>
+        ${BINARY_DIR}/third-party/realsense-file/${CMAKE_BUILD_TYPE}/$<$<NOT:${WIN32}>:lib>realsense-file$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:${WIN32},lib,a>
+
+        sfml-graphics
 )
 
-target_compile_options(Androbot
-    PRIVATE /MTd
+set_target_properties(Androbot
+    PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED TRUE
+        COMPILE_OPTIONS $<${WIN32}:/MTd>
 )

@@ -1,8 +1,9 @@
 #include <iostream>
 
 #include <librealsense2/rs.hpp>
+#include<SFML/Graphics.hpp>
 
-#include "utils.hpp"
+#include "color.hpp"
 
 typedef unsigned int uint;
 
@@ -13,19 +14,24 @@ const uint FRAME_HEIGHT = 480;
 
 const char PORT_NAME[] = "\\\\.\\COM20";
 
-template<typename T, typename T1, typename T2>
-std::pair<T1, T2> getNearestPointCoordinates(T* source);
+struct Coordinate2d
+{
+    uint x;
+    uint y;
+};
+
+Coordinate2d getProximatePointCoordinates(const rs2::depth_frame &df);
 
 int main()
 {
-    float *depthValues = new float[FRAME_WIDTH * FRAME_HEIGHT];
     rs2::context context;
     rs2::pipeline pipe;
-    
+
+    sf::RenderWindow viewport(sf::VideoMode(FRAME_WIDTH * 2, FRAME_HEIGHT * 2), "Viewport");
+
     try
     {
         rs2::device_list devList = context.query_devices();
-
         if (0 == devList.size())
         {
             throw std::runtime_error("No devices connected.");
@@ -33,48 +39,95 @@ int main()
 
         rs2::device dev = devList.front();
     }
-    catch(const std::runtime_error& e)
+    catch(const std::runtime_error &e)
     {
         std::cerr << e.what() << '\n';
+        return 0;
     }
 
     pipe.start();
  
     // Initial frameset as warmup
     rs2::frameset frames = pipe.wait_for_frames();
-    rs2::depth_frame depthFrame{ 0 };
+    rs2::depth_frame depthFrame { 0 };
 
-    while (!viewport.is_closed())
+    sf::Image depthMap;
+    depthMap.create(FRAME_WIDTH * 2, FRAME_HEIGHT * 2);
+
+    while (viewport.isOpen())
     {
-        frames = pipe.wait_for_frames(100);
+        frames = pipe.wait_for_frames(250);
         depthFrame = frames.get_depth_frame();
-        const std::pair<int, int> proximatePoint = getNearestPointCoordinates<float, int, int>(depthValues);
+        const Coordinate2d proximatePoint = getProximatePointCoordinates(depthFrame);
 
-        std::cout << proximatePoint.first << ' ' << proximatePoint.second << '\n';
+        for (uint x = 0; x < FRAME_WIDTH; x++)
+        {
+            for (uint y = 0; y < FRAME_HEIGHT; y++)
+            {
+                const sf::Color col(static_cast<uint>(color::WHITE * depthFrame.get_distance(x, y)));
+                
+                for (uint dx = 0; dx < 2; dx++)
+                {
+                    for (uint dy = 0; dy < 2; dy++)
+                    {
+                        depthMap.setPixel(x*2 + dx, y*2 + dy, col);
+                    }
+                }
+            }
+        }
+
+        for (uint x = proximatePoint.x - 5; x < proximatePoint.x + 5; ++x)
+        {
+            for (uint y = proximatePoint.y - 5; y < proximatePoint.y + 5; ++y)
+            {
+                depthMap.setPixel(x, y, sf::Color::Red);
+            }
+        }
+
+        sf::Event e;
+        while (viewport.pollEvent(e))
+        {
+            if (sf::Event::Closed == e.type)
+            {
+                viewport.close();
+            }
+        }
+
+        sf::Texture txr;
+        txr.loadFromImage(depthMap);
+        sf::Sprite sprite(txr);
+
+        viewport.clear();
+        viewport.draw(sprite);
+
+        viewport.display();
+
+        std::cout << proximatePoint.x << ' ' << proximatePoint.y << '\n';
     }
 
     pipe.stop();
+
+    return 0;
 }
 
-template<typename T, typename T1, typename T2>
-std::pair<T1, T2> getNearestPointCoordinates(T* source)
+Coordinate2d getProximatePointCoordinates(const rs2::depth_frame &df)
 {
-    std::pair<T1, T2> coords;
+    Coordinate2d c { 0, 0 };
     float nearestPointValue = 1.0f;
 
     for (uint y = 0; y < FRAME_HEIGHT; y++)
     {
         for (uint x = 1; x < FRAME_WIDTH; x++)
         {
-            float currentCheckedPoint = source[x + y * FRAME_WIDTH];
+            const float currentCheckedPointDepth = df.get_distance(x, y);
 
-            if (currentCheckedPoint < nearestPointValue && currentCheckedPoint != 0)
+            if (currentCheckedPointDepth < nearestPointValue && currentCheckedPointDepth != 0)
             {
-                nearestPointValue = currentCheckedPoint;
-                coords = std::pair<int, int>{ x, y };
+                nearestPointValue = currentCheckedPointDepth;
+                c = Coordinate2d { x, y };
             }
         }
     }
 
-    return coords;
+    return c;
 }

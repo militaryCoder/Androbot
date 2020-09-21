@@ -6,4 +6,4 @@ Debug/*
 build
 .vscode
 3rd-party
-external_libs
+CMakeSettings.json

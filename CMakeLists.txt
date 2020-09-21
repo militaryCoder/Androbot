@@ -24,4 +24,7 @@ ExternalProject_Add(
 ExternalProject_Get_Property(librealsense2 BINARY_DIR)
 ExternalProject_Get_Property(librealsense2 SOURCE_DIR)
 
+set(SFML_STATIC_LIBRARIES TRUE)
+find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
+
 add_subdirectory(src)
