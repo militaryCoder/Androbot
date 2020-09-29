@@ -1,31 +1,48 @@
-/*
-* Author: Manash Kumar Mandal
-* Modified Library introduced in Arduino Playground which does not work
-* This works perfectly
-* LICENSE: MIT
-*/
-
 #pragma once
 
-#define ARDUINO_WAIT_TIME 2000
-#define MAX_DATA_LENGTH 255
+#include <memory>
 
-#include <windows.h>
-#include <iostream>
+#ifdef _WIN32
+
+#include <Windows.h>
+
+namespace SerialMode
+{
+    unsigned long Read = GENERIC_READ;
+    unsigned long Write = GENERIC_WRITE;
+    unsigned long ReadWrite = Read | Write;
+}
+
+#endif
+
+#ifdef __unix__
+
+#include <fnctl.h>
+
+namespace SerialMode
+{
+    int Read = O_RDONLY;
+    int Write = O_WRONLY;
+    int ReadWrite = O_RDWR;
+}
+
+#endif
+
+class SerialPortImpl;
+
+typedef unsigned int uint;
 
 class SerialPort
 {
-private:
-    HANDLE handler;
-    bool connected;
-    COMSTAT status;
-    DWORD errors;
 public:
-    explicit SerialPort(const char *portName);
-    ~SerialPort();
+    SerialPort(const char *portName, int mode = SerialMode::ReadWrite, uint baudrate = 9600u);
+    SerialPort(const char *portName, unsigned long mode = SerialMode::ReadWrite, uint baudrate = 9600u);
 
-    int readSerialPort(const char *buffer, unsigned int buf_size);
-    bool writeSerialPort(const char *buffer, unsigned int buf_size);
-    bool isConnected();
-    void closeSerial();
+    void open(const char *portName, int mode);
+    void close();
+    const char *read();
+    void write(const char *data, uint count);
+
+private:
+    std::unique_ptr<SerialPortImpl> pImpl;
 };

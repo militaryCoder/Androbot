@@ -1,131 +1,33 @@
-/*
-* Author: Manash Kumar Mandal
-* Modified Library introduced in Arduino Playground which does not work
-* This works perfectly
-* LICENSE: MIT
-*/
-
 #include "SerialPort.hpp"
 
-SerialPort::SerialPort(const char *portName)
+#include "SerialPortImpl.cpp"
+
+SerialPort::SerialPort(const char* portName, int mode = SerialMode::ReadWrite, uint baudrate = 9600u)
 {
-    this->connected = false;
-
-    this->handler = CreateFileA(static_cast<LPCSTR>(portName),
-                                GENERIC_READ | GENERIC_WRITE,
-                                0,
-                                NULL,
-                                OPEN_EXISTING,
-                                FILE_ATTRIBUTE_NORMAL,
-                                NULL);
-    if (this->handler == INVALID_HANDLE_VALUE)
-    {
-        if (GetLastError() == ERROR_FILE_NOT_FOUND)
-        {
-            std::cerr << "ERROR: Handle was not attached.Reason : " << portName << " not available\n";
-        }
-        else
-        {
-            std::cerr << "ERROR!!!\n";
-        }
-    }
-    else
-    {
-        DCB dcbSerialParameters = {0};
-
-        if (!GetCommState(this->handler, &dcbSerialParameters))
-        {
-            std::cerr << "Failed to get current serial parameters\n";
-        }
-        else
-        {
-            dcbSerialParameters.BaudRate = CBR_9600;
-            dcbSerialParameters.ByteSize = 8;
-            dcbSerialParameters.StopBits = ONESTOPBIT;
-            dcbSerialParameters.Parity = NOPARITY;
-            dcbSerialParameters.fDtrControl = DTR_CONTROL_ENABLE;
-
-            if (!SetCommState(handler, &dcbSerialParameters))
-            {
-                std::cout << "ALERT: could not set serial port parameters\n";
-            }
-            else
-            {
-                this->connected = true;
-                PurgeComm(this->handler, PURGE_RXCLEAR | PURGE_TXCLEAR);
-                Sleep(ARDUINO_WAIT_TIME);
-            }
-        }
-    }
+	pImpl->open(portName, mode, baudrate);
 }
 
-SerialPort::~SerialPort()
+SerialPort::SerialPort(const char* portName, unsigned long mode = SerialMode::ReadWrite, uint baudrate = 9600u)
 {
-    if (this->connected)
-    {
-        this->connected = false;
-        CloseHandle(this->handler);
-    }
+	pImpl->open(portName, mode, baudrate);
 }
 
-// Reading bytes from serial port to buffer;
-// returns read bytes count, or if error occurs, returns 0
-int SerialPort::readSerialPort(const char *buffer, unsigned int buf_size)
+void SerialPort::open(const char *portName, int mode)
 {
-    DWORD bytesRead{};
-    unsigned int toRead = 0;
-
-    ClearCommError(this->handler, &this->errors, &this->status);
-
-    if (this->status.cbInQue > 0)
-    {
-        if (this->status.cbInQue > buf_size)
-        {
-            toRead = buf_size;
-        }
-        else
-        {
-            toRead = this->status.cbInQue;
-        }
-    }
-
-    memset(&buffer, 0, buf_size);
-
-    if (ReadFile(this->handler, &buffer, toRead, &bytesRead, NULL))
-    {
-        return bytesRead;
-    }
-
-    return 0;
+	pImpl->open(portName, mode);
 }
 
-// Sending provided buffer to serial port;
-// returns true if succeed, false if not
-bool SerialPort::writeSerialPort(const char *buffer, unsigned int buf_size)
+void SerialPort::close()
 {
-    DWORD bytesSend;
-
-    if (!WriteFile(this->handler, (void*) buffer, buf_size, &bytesSend, 0))
-    {
-        ClearCommError(this->handler, &this->errors, &this->status);
-        return false;
-    }
-    
-    return true;
+	pImpl->close();
 }
 
-// Checking if serial port is connected
-bool SerialPort::isConnected()
+void SerialPort::write(const char *data, uint count)
 {
-    if (!ClearCommError(this->handler, &this->errors, &this->status))
-    {
-        this->connected = false;
-    }
-
-    return this->connected;
+	pImpl->write(data, count);
 }
 
-void SerialPort::closeSerial()
+const char* SerialPort::read()
 {
-    CloseHandle(this->handler);
+	return pImpl->read();
 }

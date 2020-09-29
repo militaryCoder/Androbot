@@ -12,7 +12,7 @@ static bool running = true;
 const uint FRAME_WIDTH = 640;
 const uint FRAME_HEIGHT = 480;
 
-const char PORT_NAME[] = "\\\\.\\COM20";
+const char PORT_NAME[] = "\\\\.\\COM3";
 
 struct Coordinate2d
 {
