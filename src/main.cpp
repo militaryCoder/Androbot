@@ -54,11 +54,20 @@ int main()
     sf::Image depthMap;
     depthMap.create(FRAME_WIDTH * 2, FRAME_HEIGHT * 2);
 
+    Timer<std::chrono::system_clock, int> timer;
+    timer.start();
+
     while (viewport.isOpen())
     {
-        frames = pipe.wait_for_frames(250);
+        frames = pipe.wait_for_frames(1000);
         depthFrame = frames.get_depth_frame();
         const Coordinate2d proximatePoint = getProximatePointCoordinates(depthFrame);
+
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(timer.getElapsedTime()).count() >= DEPTH_FRAME_RECEIVEMENT_TIMEOUT)
+        {
+            timer.reset();
+            proximatePoint = getProximatePoint(depthFrame);
+        }
 
         for (uint x = 0; x < FRAME_WIDTH; x++)
         {
