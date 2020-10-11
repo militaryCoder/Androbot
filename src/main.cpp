@@ -9,18 +9,19 @@ typedef unsigned int uint;
 
 static bool running = true;
 
-const uint FRAME_WIDTH = 640;
-const uint FRAME_HEIGHT = 480;
+const uint FRAME_WIDTH = 640u;
+const uint FRAME_HEIGHT = 480u;
+
 
 const char PORT_NAME[] = "\\\\.\\COM3";
 
-struct Coordinate2d
+Point<float> getProximatePoint(const rs2::depth_frame &df);
 {
     uint x;
     uint y;
 };
 
-Coordinate2d getProximatePointCoordinates(const rs2::depth_frame &df);
+int main(int argc, char **argv)
 
 int main()
 {
@@ -49,7 +50,9 @@ int main()
  
     // Initial frameset as warmup
     rs2::frameset frames = pipe.wait_for_frames();
-    rs2::depth_frame depthFrame { 0 };
+
+    rs2::depth_frame depthFrame = frames.get_depth_frame();
+    Point<float> proximatePoint = getProximatePoint(depthFrame);
 
     sf::Image depthMap;
     depthMap.create(FRAME_WIDTH * 2, FRAME_HEIGHT * 2);
@@ -85,9 +88,9 @@ int main()
             }
         }
 
-        for (uint x = proximatePoint.x - 5; x < proximatePoint.x + 5; ++x)
+        for (uint x = proximatePoint.c.x - 5; x < proximatePoint.c.x + 5; ++x)
         {
-            for (uint y = proximatePoint.y - 5; y < proximatePoint.y + 5; ++y)
+            for (uint y = proximatePoint.c.y - 5; y < proximatePoint.c.y + 5; ++y)
             {
                 depthMap.setPixel(x, y, sf::Color::Red);
             }
@@ -111,7 +114,7 @@ int main()
 
         viewport.display();
 
-        std::cout << proximatePoint.x << ' ' << proximatePoint.y << '\n';
+        std::clog << proximatePoint << '\n';
     }
 
     pipe.stop();
@@ -119,10 +122,10 @@ int main()
     return 0;
 }
 
-Coordinate2d getProximatePointCoordinates(const rs2::depth_frame &df)
+Point<float> getProximatePoint(const rs2::depth_frame &df)
 {
-    Coordinate2d c { 0, 0 };
-    float nearestPointValue = 1.0f;
+    const float EPS = 0.1f;
+    Point<float> p { 10.0f, { 0, 0 } };
 
     for (uint y = 0; y < FRAME_HEIGHT; y++)
     {
@@ -130,13 +133,13 @@ Coordinate2d getProximatePointCoordinates(const rs2::depth_frame &df)
         {
             const float currentCheckedPointDepth = df.get_distance(x, y);
 
-            if (currentCheckedPointDepth < nearestPointValue && currentCheckedPointDepth != 0)
+            if (std::abs(currentCheckedPointDepth) > EPS && currentCheckedPointDepth < p.value)
             {
-                nearestPointValue = currentCheckedPointDepth;
-                c = Coordinate2d { x, y };
+                p.value = currentCheckedPointDepth;
+                p.c = Coordinate2d { x, y };
             }
         }
     }
 
-    return c;
+    return p;
 }

@@ -1,0 +1,28 @@
+#pragma once
+
+#include <iostream>
+
+typedef unsigned int uint;
+
+struct Coordinate2d
+{
+    uint x;
+    uint y;
+};
+
+template <typename ValType>
+struct Point
+{
+    ValType value;
+    Coordinate2d c;
+
+    friend std::ostream &operator<<(std::ostream &out, const Point &p);
+};
+
+template <typename ValT>
+std::ostream &operator<<(std::ostream &out, const Point<ValT> &p)
+{
+    out << '(' << p.c.x << ',' << p.c.y << ')' << " [" << p.value << ']';
+
+    return out;
+}
