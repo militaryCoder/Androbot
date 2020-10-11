@@ -1,9 +1,12 @@
 #include <iostream>
+#include <cmath>
 
 #include <librealsense2/rs.hpp>
-#include<SFML/Graphics.hpp>
+#include <SFML/Graphics.hpp>
 
 #include "color.hpp"
+#include "Point.hpp"
+#include "Timer.hpp"
 
 typedef unsigned int uint;
 
@@ -12,18 +15,13 @@ static bool running = true;
 const uint FRAME_WIDTH = 640u;
 const uint FRAME_HEIGHT = 480u;
 
+const uint DEPTH_FRAME_RECEIVEMENT_TIMEOUT = 1000u;
 
 const char PORT_NAME[] = "\\\\.\\COM3";
 
 Point<float> getProximatePoint(const rs2::depth_frame &df);
-{
-    uint x;
-    uint y;
-};
 
 int main(int argc, char **argv)
-
-int main()
 {
     rs2::context context;
     rs2::pipeline pipe;
@@ -64,7 +62,6 @@ int main()
     {
         frames = pipe.wait_for_frames(1000);
         depthFrame = frames.get_depth_frame();
-        const Coordinate2d proximatePoint = getProximatePointCoordinates(depthFrame);
 
         if (std::chrono::duration_cast<std::chrono::milliseconds>(timer.getElapsedTime()).count() >= DEPTH_FRAME_RECEIVEMENT_TIMEOUT)
         {
@@ -76,13 +73,26 @@ int main()
         {
             for (uint y = 0; y < FRAME_HEIGHT; y++)
             {
-                const sf::Color col(static_cast<uint>(color::WHITE * depthFrame.get_distance(x, y)));
-                
+                //const float dist = depthFrame.get_distance(x, y);
+                //const sf::Color grayscale = sf::Color(255 * (1 - dist), 255 * (1 - dist), 255 * (1 - dist), 255);
+                //const sf::Color color = sf::Color(255 * (1 -dist), 255 * (1 - dist*dist), 255 * dist, 255);
+                //
+                //for (uint dx = 0; dx < 2; dx++)
+                //{
+                //    for (uint dy = 0; dy < 2; dy++)
+                //    {
+                //        depthMap.setPixel(x*2 + dx, y*2 + dy, grayscale);
+                //    }
+                //}
+
+                // Debug drawing
+                const float dist = depthFrame.get_distance(x, y);
+                const uint roundFactor = std::round(dist);
                 for (uint dx = 0; dx < 2; dx++)
                 {
                     for (uint dy = 0; dy < 2; dy++)
                     {
-                        depthMap.setPixel(x*2 + dx, y*2 + dy, col);
+                        depthMap.setPixel(x*2 + dx, y*2 + dy, sf::Color(255*(1 - roundFactor), 255 * (1 - roundFactor), 255 * (1 - roundFactor), 255));
                     }
                 }
             }

@@ -2,12 +2,12 @@
 
 #include "SerialPortImpl.cpp"
 
-SerialPort::SerialPort(const char* portName, int mode = SerialMode::ReadWrite, uint baudrate = 9600u)
+SerialPort::SerialPort(const char* portName, int mode, uint baudrate)
 {
 	pImpl->open(portName, mode, baudrate);
 }
 
-SerialPort::SerialPort(const char* portName, unsigned long mode = SerialMode::ReadWrite, uint baudrate = 9600u)
+SerialPort::SerialPort(const char* portName, unsigned long mode, uint baudrate)
 {
 	pImpl->open(portName, mode, baudrate);
 }

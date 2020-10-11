@@ -3,7 +3,7 @@ project(Androbot LANGUAGES CXX)
 add_executable(Androbot
     main.cpp
     SerialPort.cpp
-)
+ )
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Debug)
