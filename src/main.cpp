@@ -137,16 +137,22 @@ Point<float> getProximatePoint(const rs2::depth_frame &df)
     const float EPS = 0.1f;
     Point<float> p { 10.0f, { 0, 0 } };
 
-    for (uint y = 0; y < FRAME_HEIGHT; y++)
+    const int matrixStep = 20;
+
+    for (uint y = 0; y < FRAME_HEIGHT; y += 20)
     {
-        for (uint x = 1; x < FRAME_WIDTH; x++)
+        for (uint x = 0; x < FRAME_WIDTH; x += 20)
         {
+            float depthMatrix[matrixStep * matrixStep];
+
             const float currentCheckedPointDepth = df.get_distance(x, y);
 
-            if (std::abs(currentCheckedPointDepth) > EPS && currentCheckedPointDepth < p.value)
+            for (int my = y; my < y + 20; my++)
             {
-                p.value = currentCheckedPointDepth;
-                p.c = Coordinate2d { x, y };
+                for (int mx = x; mx < x + 20; mx++)
+                {
+                    depthMatrix[mx - x + matrixStep * (my - y)] = currentCheckedPointDepth;
+                }
             }
         }
     }

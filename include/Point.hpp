@@ -16,7 +16,8 @@ struct Point
     ValType value;
     Coordinate2d c;
 
-    friend std::ostream &operator<<(std::ostream &out, const Point &p);
+    template <typename ValT>
+    friend std::ostream &operator<<(std::ostream &out, const Point<ValT> &p);
 };
 
 template <typename ValT>
