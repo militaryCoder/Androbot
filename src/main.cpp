@@ -73,28 +73,28 @@ int main(int argc, char **argv)
         {
             for (uint y = 0; y < FRAME_HEIGHT; y++)
             {
-                //const float dist = depthFrame.get_distance(x, y);
-                //const sf::Color grayscale = sf::Color(255 * (1 - dist), 255 * (1 - dist), 255 * (1 - dist), 255);
-                //const sf::Color color = sf::Color(255 * (1 -dist), 255 * (1 - dist*dist), 255 * dist, 255);
-                //
-                //for (uint dx = 0; dx < 2; dx++)
-                //{
-                //    for (uint dy = 0; dy < 2; dy++)
-                //    {
-                //        depthMap.setPixel(x*2 + dx, y*2 + dy, grayscale);
-                //    }
-                //}
-
-                // Debug drawing
                 const float dist = depthFrame.get_distance(x, y);
-                const uint roundFactor = std::round(dist);
+                const sf::Color grayscale = sf::Color(255 * (1 - dist), 255 * (1 - dist), 255 * (1 - dist), 255);
+                const sf::Color color = sf::Color(255 * (1 -dist), 255 * (1 - dist*dist), 255 * dist, 255);
+                
                 for (uint dx = 0; dx < 2; dx++)
                 {
                     for (uint dy = 0; dy < 2; dy++)
                     {
-                        depthMap.setPixel(x*2 + dx, y*2 + dy, sf::Color(255*(1 - roundFactor), 255 * (1 - roundFactor), 255 * (1 - roundFactor), 255));
+                        depthMap.setPixel(x*2 + dx, y*2 + dy, grayscale);
                     }
                 }
+
+                // Debug drawing
+                //const float dist = depthFrame.get_distance(x, y);
+                //const uint roundFactor = std::round(dist);
+                //for (uint dx = 0; dx < 2; dx++)
+                //{
+                //    for (uint dy = 0; dy < 2; dy++)
+                //    {
+                //        depthMap.setPixel(x*2 + dx, y*2 + dy, sf::Color(255*(1 - roundFactor), 255 * (1 - roundFactor), 255 * (1 - roundFactor), 255));
+                //    }
+                //}
             }
         }
 
