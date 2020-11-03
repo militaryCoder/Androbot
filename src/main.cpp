@@ -58,9 +58,9 @@ int main(int argc, char **argv)
     pipe.start();
  
     // Initial frameset as warmup
-    rs2::frameset frames = pipe.wait_for_frames();
+    rs2::frameset frameSet = pipe.wait_for_frames();
 
-    rs2::depth_frame depthFrame = frames.get_depth_frame();
+    rs2::depth_frame depthFrame = frameSet.get_depth_frame();
 
     Pair<Range<uint>, Range<uint>> proximateRegion = getProximateRegion(depthFrame);
     Point<float> proximatePoint = getProximatePoint(depthFrame);
@@ -73,8 +73,8 @@ int main(int argc, char **argv)
 
     while (viewport.isOpen())
     {
-        frames = pipe.wait_for_frames();
-        depthFrame = frames.get_depth_frame();
+        frameSet = pipe.wait_for_frames();
+        depthFrame = frameSet.get_depth_frame();
 
         if (std::chrono::duration_cast<std::chrono::milliseconds>(timer.getElapsedTime()).count() >= DEPTH_FRAME_RECEIVEMENT_TIMEOUT)
         {
