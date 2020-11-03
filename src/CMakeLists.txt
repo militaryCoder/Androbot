@@ -3,7 +3,10 @@ project(Androbot LANGUAGES CXX)
 add_executable(Androbot
     main.cpp
     SerialPort.cpp
- )
+  )
+
+  add_executable(MatrixTest MatrixTest.cpp)
+  target_include_directories(MatrixTest PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Debug)
