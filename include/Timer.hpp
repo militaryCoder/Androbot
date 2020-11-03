@@ -1,6 +1,6 @@
 #include <chrono>
 
-template <typename Clock, typename Rep = long long int>
+template <typename Clock, typename Rep = long long>
 class Timer
 {
 public:
