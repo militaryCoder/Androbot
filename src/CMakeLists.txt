@@ -1,4 +1,4 @@
-project(Androbot LANGUAGES CXX)
+project(AndrobotApp)
 
 add_executable(Androbot
     main.cpp
@@ -12,26 +12,30 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-message(STATUS "Build Type is "${CMAKE_BUILD_TYPE})
+message(STATUS "Build Type is " ${CMAKE_BUILD_TYPE})
+
+include(${CMAKE_SOURCE_DIR}/CMake/AddLibRealSense.cmake)
 
 target_include_directories(Androbot
     PRIVATE
-        ${SOURCE_DIR}/include
-        ${CMAKE_SOURCE_DIR}/include
+    ${LIBREALSENSE_SRC_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include
 )
 
-set(IS_UNIX_OS 1)
-if(WIN32)
-    set(IS_UNIX_OS 0)
-endif()
+target_link_libraries(Androbot
+    ${LIBREALSENSE_BIN_DIR}/${CMAKE_BUILD_TYPE}/$<$<NOT:${WIN32}>:lib>realsense2$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:${WIN32},lib,a>
+    ${LIBREALSENSE_BIN_DIR}/libusb_install/lib/$<$<NOT:${WIN32}>:lib>usb.$<IF:$<BOOL:WIN32>,lib,a>
+    ${LIBREALSENSE_BIN_DIR}/third-party/realsense-file/${CMAKE_BUILD_TYPE}/$<$<NOT:${WIN32}>:lib>realsense-file$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:${WIN32},lib,a>
+)
+
+include(${CMAKE_SOURCE_DIR}/CMake/AddGlew.cmake)
+target_include_directories(Androbot
+    PRIVATE
+    ${GLEW_SRC_DIR}/include
+)
 
 target_link_libraries(Androbot
-    PRIVATE
-        ${BINARY_DIR}/${CMAKE_BUILD_TYPE}/$<$<NOT:${WIN32}>:lib>realsense2$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:${WIN32},lib,a>
-        ${BINARY_DIR}/libusb_install/lib/$<$<NOT:${WIN32}>:lib>usb.$<IF:$<BOOL:WIN32>,lib,a>
-        ${BINARY_DIR}/third-party/realsense-file/${CMAKE_BUILD_TYPE}/$<$<NOT:${WIN32}>:lib>realsense-file$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.$<IF:${WIN32},lib,a>
-
-        sfml-graphics
+    ${GLEW_BIN_DIR}/lib/${CMAKE_BUILD_TYPE}/libglew32$<$<AND:${WIN32},$<STREQUAL:${CMAKE_BUILD_TYPE},Debug>>:d>.lib
 )
 
 set_target_properties(Androbot

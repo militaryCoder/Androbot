@@ -20,6 +20,15 @@ public:
         }
     }
 
+    explicit Array(size_t s, const T *dat) : size(s)
+    {
+        m_data = new T[size];
+        for (unsigned int i = 0; i < size; i++)
+        {
+            m_data[i] = dat[i];
+        }
+    }
+
     Array(const Array &other)
     {
         this->size = other.size;
@@ -38,14 +47,22 @@ public:
 
     T &operator[](size_t index)
     {
-        if (index >= size || index < 0) throw std::invalid_argument("Attempt to access out-of-range array element.");
+        if (index >= size || index < 0)
+        {
+            const std::string errMsg = "Attempt to access out-of-range array element at position [" + std::to_string(index) + "].";
+            throw std::invalid_argument(errMsg);
+        }
 
         return m_data[index];
     }
 
     const T &operator[](size_t index) const
     {
-        if (index >= size || index < 0) throw std::invalid_argument("Attempt to access out-of-range array element.");
+        if (index >= size || index < 0)
+        {
+            const std::string errMsg = "Attempt to access out-of-range array element at position [" + std::to_string(index) + "].";
+            throw std::invalid_argument(errMsg);
+        }
 
         return m_data[index];
     }
