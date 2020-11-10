@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <thread>
 
 #include <librealsense2/rs.hpp>
 #include <SFML/Graphics.hpp>
@@ -39,87 +40,43 @@ int main(int argc, char **argv)
 
     sf::RenderWindow viewport(sf::VideoMode(FRAME_WIDTH, FRAME_HEIGHT), "Viewport");
 
-    try
+    rs2::device_list devList = context.query_devices();
+    if (0 == devList.size())
     {
-        rs2::device_list devList = context.query_devices();
-        if (0 == devList.size())
-        {
-            throw std::runtime_error("No devices connected.");
-        }
+        std::cerr << "No connected devices detected.\n";
+        return -1;
+    }
 
-        rs2::device dev = devList.front();
-    }
-    catch(const std::runtime_error &e)
-    {
-        std::cerr << e.what() << '\n';
-        return 0;
-    }
+    rs2::device dev = devList.front();
 
     pipe.start();
  
     // Initial frameset as warmup
     rs2::frameset frameSet = pipe.wait_for_frames();
 
-    rs2::depth_frame depthFrame = frameSet.get_depth_frame();
-
-    Pair<Range<uint>, Range<uint>> proximateRegion = getProximateRegion(depthFrame);
-    Point<float> proximatePoint = getProximatePoint(depthFrame);
+    // Pair<Range<uint>, Range<uint>> proximateRegion = getProximateRegion(dFrame);
+    // Point<float> proximatePoint = getProximatePoint(dFrame);
 
     sf::Image depthMap;
-    // depthMap.create(FRAME_WIDTH * 2, FRAME_HEIGHT * 2);
 
     Timer<std::chrono::system_clock, int> timer;
     timer.start();
 
     while (viewport.isOpen())
     {
-        frameSet = pipe.wait_for_frames();
-        depthFrame = frameSet.get_depth_frame();
+        const rs2::video_frame vFrame = frameSet.get_color_frame();
+        const rs2::depth_frame dFrame = frameSet.get_depth_frame();
+        rs2::pointcloud pc;
+        pc.map_to(vFrame);
+        rs2::points dPoints = pc.calculate(dFrame);
 
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(timer.getElapsedTime()).count() >= DEPTH_FRAME_RECEIVEMENT_TIMEOUT)
-        {
-            timer.reset();
-            proximatePoint = getProximatePoint(depthFrame);
-            proximateRegion = getProximateRegion(depthFrame);
-        }
+        const rs2::vertex *vertices = dPoints.get_vertices();
+        const uint pointsCount = dPoints.size();
+
+        Array<rs2::vertex> verticesArray(pointsCount, vertices);
         
-        for (uint x = 0; x < FRAME_WIDTH; x++)
-        {
-            for (uint y = 0; y < FRAME_HEIGHT; y++)
-            {
-                const float dist = depthFrame.get_distance(x, y);
-                const sf::Color grayscale = sf::Color(255 * (1 - dist), 255 * (1 - dist), 255 * (1 - dist), 255);
-                // const sf::Color color = sf::Color(255 * (1 - dist), 255 * (1 - dist*dist), 255 * dist, 255);
-                
-                for (uint dx = 0; dx < 2; dx++)
-                {
-                    for (uint dy = 0; dy < 2; dy++)
-                    {
-                        depthMap.setPixel(x*2 + dx, y*2 + dy, grayscale);
-                    }
-                }
-
-                // Debug drawing
-                //const float dist = depthFrame.get_distance(x, y);
-                //for (uint dx = 0; dx < 2; dx++)
-                //{
-                //    for (uint dy = 0; dy < 2; dy++)
-                //    {
-                //        depthMap.setPixel(x*2 + dx, y*2 + dy, sf::Color(255*std::round(dist), 255*std::round(dist), 255*std::round(dist), 255));
-                //    }
-                //}
-            }
-        }
-
-        // Drawing proximate region
-        for (uint y = proximateRegion.snd.from; y <= proximateRegion.snd.to; y++)
-        {
-            for (uint x = proximateRegion.fst.from; x <= proximateRegion.fst.to; x++)
-            {
-                depthMap.setPixel(x, y, sf::Color::Red);
-            }
-        }
-
+        // TODO: think about drawing with floats
+        /*
         sf::Event e;
         while (viewport.pollEvent(e))
         {
@@ -137,6 +94,7 @@ int main(int argc, char **argv)
         viewport.draw(sprite);
 
         viewport.display();
+        */
     }
 
     pipe.stop();
