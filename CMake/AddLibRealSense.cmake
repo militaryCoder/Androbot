@@ -10,7 +10,7 @@ ExternalProject_Add(
     LOG_DIR ${THIRD_PARTY_LOG_DIR}/librealsense
 
     GIT_REPOSITORY https://github.com/IntelRealSense/librealsense
-    GIT_TAG v2.38.1
+    GIT_TAG v2.39.0
     GIT_SHALLOW ON
     GIT_PROGRESS ON
 
