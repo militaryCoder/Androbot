@@ -3,7 +3,6 @@
 #include <thread>
 
 #include <librealsense2/rs.hpp>
-#include <SFML/Graphics.hpp>
 
 #include "color.hpp"
 #include "Matrix.hpp"
@@ -38,8 +37,6 @@ int main(int argc, char **argv)
     rs2::context context;
     rs2::pipeline pipe;
 
-    sf::RenderWindow viewport(sf::VideoMode(FRAME_WIDTH, FRAME_HEIGHT), "Viewport");
-
     rs2::device_list devList = context.query_devices();
     if (0 == devList.size())
     {
@@ -53,11 +50,6 @@ int main(int argc, char **argv)
  
     // Initial frameset as warmup
     rs2::frameset frameSet = pipe.wait_for_frames();
-
-    // Pair<Range<uint>, Range<uint>> proximateRegion = getProximateRegion(dFrame);
-    // Point<float> proximatePoint = getProximatePoint(dFrame);
-
-    sf::Image depthMap;
 
     Timer<std::chrono::system_clock, int> timer;
     timer.start();
@@ -74,27 +66,6 @@ int main(int argc, char **argv)
         const uint pointsCount = dPoints.size();
 
         Array<rs2::vertex> verticesArray(pointsCount, vertices);
-        
-        // TODO: think about drawing with floats
-        /*
-        sf::Event e;
-        while (viewport.pollEvent(e))
-        {
-            if (sf::Event::Closed == e.type)
-            {
-                viewport.close();
-            }
-        }
-
-        sf::Texture txr;
-        txr.loadFromImage(depthMap);
-        sf::Sprite sprite(txr);
-
-        viewport.clear();
-        viewport.draw(sprite);
-
-        viewport.display();
-        */
     }
 
     pipe.stop();
